@@ -67,7 +67,7 @@ namespace ChefSmart_Api.BLL.Services.Classess
             {
                 var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
                 var escapedToken = Uri.EscapeDataString(token);
-                var emailUrl = $"{httpRequest.Scheme}://{httpRequest.Host}/api/Identity/Account/confirm-email?token={escapedToken}&userId={user.Id}";
+                var emailUrl = $"{httpRequest.Scheme}://{httpRequest.Host}/api/Account/confirm-email?token={escapedToken}&userId={user.Id}";
                 await _emailSender.SendEmailAsync(user.Email, "تأكيد البريد الإلكتروني",
                     $"<h1>مرحباً {user.UserName}</h1>" +
                     $"<p>يرجى تأكيد بريدك الإلكتروني من خلال النقر على الرابط أدناه:</p>" +
@@ -79,8 +79,13 @@ namespace ChefSmart_Api.BLL.Services.Classess
             }
             else
             {
-                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-                throw new Exception($"فشل التسجيل: {errors}");
+                
+                if (result.Errors.Any(e => e.Code == "DuplicateEmail"))
+                {
+                    throw new Exception("البريد الإلكتروني الذي أدخلته مستخدم بالفعل. يرجى استخدام بريد إلكتروني آخر.");
+                }
+                
+                throw new Exception("فشل التسجيل: هذا البريد الإلكتروني غير متاح.");
             }
         }
 
